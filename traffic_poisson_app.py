@@ -36,47 +36,44 @@ if st.sidebar.button("Simulate"):
     col_mid = st.columns([1, 2, 1])
     col_bot = st.columns([1, 2, 1])
 
-    # -------- Lane 4 (North → South) --------
+    # Lane 4 (North → South)
     with col_top[1]:
         st.markdown(f"### Lane 4 {signals[3]}")
         st.markdown("🚗 " * min(arrivals[3], 12))
         st.caption(f"Vehicles: {arrivals[3]}")
 
-    # -------- Lane 3 (West → East) --------
+    # Lane 3 (West → East)
     with col_mid[0]:
         st.markdown(f"### Lane 3 {signals[2]}")
         st.markdown("🚗 " * min(arrivals[2], 12))
         st.caption(f"Vehicles: {arrivals[2]}")
 
-    # -------- Junction Center --------
+    # Junction Center
     with col_mid[1]:
         st.markdown("## ⛔ JUNCTION")
         st.markdown("⬆️⬇️  ⬅️➡️")
 
-    # -------- Lane 1 (East → West) --------
+    # Lane 1 (East → West)
     with col_mid[2]:
         st.markdown(f"### Lane 1 {signals[0]}")
         st.markdown("🚗 " * min(arrivals[0], 12))
         st.caption(f"Vehicles: {arrivals[0]}")
 
-    # -------- Lane 2 (South → North) --------
+    # Lane 2 (South → North)
     with col_bot[1]:
         st.markdown(f"### Lane 2 {signals[1]}")
         st.markdown("🚗 " * min(arrivals[1], 12))
         st.caption(f"Vehicles: {arrivals[1]}")
 
-    # ---------------- Explanation ----------------
     st.markdown("---")
     st.markdown(
         f"""
-**Signal Decision:**  
+**Signal Decision**  
 - 🟢 Green → Lane {order[0]+1}  
 - 🟡 Yellow → Lane {order[1]+1}  
 - 🔴 Red → Remaining lanes  
-
-Each signal is positioned **before the junction**, facing incoming vehicles,
-exactly as in a real road intersection.
 """
     )
 
 else:
+    st.info("Set λ values and click **Simulate**")
