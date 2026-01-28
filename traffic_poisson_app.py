@@ -1,68 +1,57 @@
 import streamlit as st
 import numpy as np
+import plotly.graph_objects as go
 
-st.set_page_config(layout="centered")
-st.title("Visual Traffic Junction (Poisson Model)")
-
-st.write(
-    "Vehicle arrivals on each lane follow a **Poisson distribution**. "
-    "The busiest lane receives the **green signal**."
-)
-
-# ---------- Inputs ----------
-st.sidebar.header("Arrival Rates (λ per minute)")
+st.title("3D Traffic Junction (Poisson Model)")
 
 lambdas = [
-    st.sidebar.slider("Lane 1 λ", 0, 25, 10),
-    st.sidebar.slider("Lane 2 λ", 0, 25, 10),
-    st.sidebar.slider("Lane 3 λ", 0, 25, 10),
-    st.sidebar.slider("Lane 4 λ", 0, 25, 10),
+    st.slider("Lane 1 λ", 0, 25, 10),
+    st.slider("Lane 2 λ", 0, 25, 10),
+    st.slider("Lane 3 λ", 0, 25, 10),
+    st.slider("Lane 4 λ", 0, 25, 10)
 ]
 
-if st.sidebar.button("Simulate"):
-
+if st.button("Simulate"):
     arrivals = np.random.poisson(lambdas)
 
-    # Rank lanes
-    order = arrivals.argsort()[::-1]
-    signals = ["🔴"] * 4
-    signals[order[0]] = "🟢"
-    signals[order[1]] = "🟡"
+    fig = go.Figure()
 
-    st.markdown("## 🚦 Junction View")
+    # Roads
+    fig.add_surface(
+        x=[[-5, 5], [-5, 5]],
+        y=[[0, 0], [0, 0]],
+        z=[[0, 0], [0, 0]],
+        colorscale="gray",
+        showscale=False
+    )
 
-    # ---------- Visual Layout ----------
-    col_top = st.columns([1, 2, 1])
-    col_mid = st.columns([1, 2, 1])
-    col_bot = st.columns([1, 2, 1])
+    fig.add_surface(
+        x=[[0, 0], [0, 0]],
+        y=[[-5, 5], [-5, 5]],
+        z=[[0, 0], [0, 0]],
+        colorscale="gray",
+        showscale=False
+    )
 
-    # Lane 1 (Top)
-    with col_top[1]:
-        st.markdown(f"### Lane 1 {signals[0]}")
-        st.write("🚗" * min(arrivals[0], 10))
-        st.caption(f"Vehicles: {arrivals[0]}")
+    # Cars (as 3D points)
+    for i, n in enumerate(arrivals):
+        fig.add_trace(go.Scatter3d(
+            x=np.random.uniform(-4, 4, n),
+            y=np.random.uniform(-4, 4, n),
+            z=np.zeros(n),
+            mode='markers',
+            marker=dict(size=4),
+            name=f"Lane {i+1}"
+        ))
 
-    # Lane 4 (Left)
-    with col_mid[0]:
-        st.markdown(f"### Lane 4 {signals[3]}")
-        st.write("🚗" * min(arrivals[3], 10))
-        st.caption(f"Vehicles: {arrivals[3]}")
+    fig.update_layout(
+        scene=dict(
+            camera=dict(eye=dict(x=1.5, y=1.5, z=1)),
+            xaxis_visible=False,
+            yaxis_visible=False,
+            zaxis_visible=False
+        ),
+        height=600
+    )
 
-    # Center
-    with col_mid[1]:
-        st.markdown("## ⛔ Junction")
-
-    # Lane 2 (Right)
-    with col_mid[2]:
-        st.markdown(f"### Lane 2 {signals[1]}")
-        st.write("🚗" * min(arrivals[1], 10))
-        st.caption(f"Vehicles: {arrivals[1]}")
-
-    # Lane 3 (Bottom)
-    with col_bot[1]:
-        st.markdown(f"### Lane 3 {signals[2]}")
-        st.write("🚗" * min(arrivals[2], 10))
-        st.caption(f"Vehicles: {arrivals[2]}")
-
-else:
-    st.info("Set λ values and click **Simulate**")
+    st.plotly_chart(fig, use_container_width=True)
