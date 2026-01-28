@@ -1,71 +1,68 @@
 import streamlit as st
 import numpy as np
-import pandas as pd
 
-st.set_page_config(page_title="Traffic Simulation", layout="wide")
+st.set_page_config(layout="centered")
+st.title("Visual Traffic Junction (Poisson Model)")
 
-st.title("Virtual Traffic Signal Control using Poisson Distribution")
+st.write(
+    "Vehicle arrivals on each lane follow a **Poisson distribution**. "
+    "The busiest lane receives the **green signal**."
+)
 
-st.write("""
-Each lane arrival is modeled as a **Poisson random variable**.
-The lane with the highest observed arrivals gets the **green signal**.
-""")
-
-# ---------- Sidebar: Lambda Inputs ----------
+# ---------- Inputs ----------
 st.sidebar.header("Arrival Rates (λ per minute)")
 
-lambdas = {}
+lambdas = [
+    st.sidebar.slider("Lane 1 λ", 0, 25, 10),
+    st.sidebar.slider("Lane 2 λ", 0, 25, 10),
+    st.sidebar.slider("Lane 3 λ", 0, 25, 10),
+    st.sidebar.slider("Lane 4 λ", 0, 25, 10),
+]
 
-for j in range(1, 5):
-    st.sidebar.subheader(f"Junction {j}")
-    for i in range(1, 5):
-        lambdas[(j, i)] = st.sidebar.slider(
-            f"J{j} Lane {i} λ",
-            min_value=0,
-            max_value=25,
-            value=10,
-            key=f"j{j}l{i}"
-        )
+if st.sidebar.button("Simulate"):
 
-simulate = st.sidebar.button("Simulate Traffic")
+    arrivals = np.random.poisson(lambdas)
 
-# ---------- Simulation ----------
-def simulate_junction(j):
-    lam = [lambdas[(j, i)] for i in range(1, 5)]
-    arrivals = np.random.poisson(lam)
+    # Rank lanes
+    order = arrivals.argsort()[::-1]
+    signals = ["🔴"] * 4
+    signals[order[0]] = "🟢"
+    signals[order[1]] = "🟡"
 
-    ranks = arrivals.argsort()[::-1]
-    signals = ["RED"] * 4
-    signals[ranks[0]] = "GREEN"
-    signals[ranks[1]] = "YELLOW"
+    st.markdown("## 🚦 Junction View")
 
-    return pd.DataFrame({
-        "Lane": [f"Lane {i}" for i in range(1, 5)],
-        "Lambda": lam,
-        "Vehicles": arrivals,
-        "Signal": signals
-    })
+    # ---------- Visual Layout ----------
+    col_top = st.columns([1, 2, 1])
+    col_mid = st.columns([1, 2, 1])
+    col_bot = st.columns([1, 2, 1])
 
-# ---------- Display ----------
-if simulate:
-    cols = st.columns(4)
+    # Lane 1 (Top)
+    with col_top[1]:
+        st.markdown(f"### Lane 1 {signals[0]}")
+        st.write("🚗" * min(arrivals[0], 10))
+        st.caption(f"Vehicles: {arrivals[0]}")
 
-    for j in range(1, 5):
-        with cols[j-1]:
-            st.subheader(f"Junction {j}")
-            df = simulate_junction(j)
+    # Lane 4 (Left)
+    with col_mid[0]:
+        st.markdown(f"### Lane 4 {signals[3]}")
+        st.write("🚗" * min(arrivals[3], 10))
+        st.caption(f"Vehicles: {arrivals[3]}")
 
-            st.dataframe(df, use_container_width=True)
+    # Center
+    with col_mid[1]:
+        st.markdown("## ⛔ Junction")
 
-            for _, row in df.iterrows():
-                color = {
-                    "GREEN": "🟢",
-                    "YELLOW": "🟡",
-                    "RED": "🔴"
-                }[row["Signal"]]
+    # Lane 2 (Right)
+    with col_mid[2]:
+        st.markdown(f"### Lane 2 {signals[1]}")
+        st.write("🚗" * min(arrivals[1], 10))
+        st.caption(f"Vehicles: {arrivals[1]}")
 
-                st.markdown(f"**{row['Lane']}** : {color} {row['Signal']}")
+    # Lane 3 (Bottom)
+    with col_bot[1]:
+        st.markdown(f"### Lane 3 {signals[2]}")
+        st.write("🚗" * min(arrivals[2], 10))
+        st.caption(f"Vehicles: {arrivals[2]}")
 
 else:
-    st.info("Adjust λ values and click **Simulate Traffic**")
-
+    st.info("Set λ values and click **Simulate**")
