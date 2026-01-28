@@ -59,15 +59,18 @@ if animate:
         showscale=False
     )
 
-    # ---------- Buildings (Town Background) ----------
-    np.random.seed(1)
-    for bx, by in [(-5, -5), (5, -5), (-5, 5), (5, 5)]:
-        fig.add_bar3d(
-            x=[bx], y=[by], z=[0],
-            dx=1.5, dy=1.5, dz=3,
-            color="gray",
-            opacity=0.7
-        )
+# ---------- Buildings (Town Background) ----------
+def building(x, y, w=1.5, d=1.5, h=3):
+    return go.Mesh3d(
+        x=[x, x+w, x+w, x, x, x+w, x+w, x],
+        y=[y, y, y+d, y+d, y, y, y+d, y+d],
+        z=[0, 0, 0, 0, h, h, h, h],
+        color="gray",
+        opacity=0.6
+    )
+
+for bx, by in [(-5, -5), (5, -5), (-5, 5), (5, 5)]:
+    fig.add_trace(building(bx, by))
 
     # ---------- Traffic Light Poles ----------
     pole_positions = [(0, 1.8), (1.8, 0), (0, -1.8), (-1.8, 0)]
